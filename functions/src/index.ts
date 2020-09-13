@@ -1,8 +1,20 @@
-import * as functions from 'firebase-functions';
+import { https, Request, Response } from 'firebase-functions'
+import bot from './helpers/bot'
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
+export const webhook = https.onRequest(
+  ({ body }: Request, res: Response<unknown>) => {
+    bot
+      .handleUpdate(body, res)
+      .then((rv) => {
+        if (rv === undefined) {
+          console.warn(
+            'Unhandled request',
+            JSON.stringify(body).replace(/"/g, "'")
+          )
+          return res.sendStatus(200)
+        }
+        return null
+      })
+      .catch((e) => console.error('webhook', e))
+  }
+)
